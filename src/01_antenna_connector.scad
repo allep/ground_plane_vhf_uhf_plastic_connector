@@ -6,14 +6,14 @@
 // Constants
 $fn = 50;
 
-// Radius + approx 3% tolerance
-RADIATOR_RADIUS = 3.1;
+// Radius + approx 6% tolerance
+RADIATOR_RADIUS = 3.2;
 
 // Slab data
 SLAB_THICKNESS = 2.5;
 
 // Hole radius - 3% tolerance
-SLAB_HOLE_RADIUS = 5.1;
+SLAB_HOLE_RADIUS = 4.0;
 
 // Connector data
 CONNECTOR_HEIGHT = 10.0;
