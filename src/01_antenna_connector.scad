@@ -49,24 +49,22 @@ module cylinder_with_hole(radius, hole_radius, height)
     }
 }
 
-module test_holes()
+module test_holes(radiator_hole_length, distance_x, distance_y, screw_head_height, screw_head_radius, radiator_radius_external, radiator_radius_internal, create_for_internal_hole)
 {
-    distance_x = SLAB_SCREW_HOLE_DISTANCE_X;
-    distance_y = SLAB_SCREW_HOLE_DISTANCE_Y;
-    radiator_radius = RADIATOR_RADIUS;
-    screw_head_height = SCREW_HEAD_HEIGHT;
-    screw_head_radius = SCREW_HEAD_RADIUS;
-    
     rotation_angle_x = 45;
     rotation_angle_y = 0;
     rotation_angle_z = 45;
     
-    thickness = 15.0;
     hole_x = distance_x / 2;
     hole_y = distance_y / 2;
     
+    // choose how to produce the holder
+    radiator_radius = (create_for_internal_hole == true) ? radiator_radius_internal : radiator_radius_external;
+    
+    echo(radiator_radius);
+    
     border_separation_z = screw_head_radius / tan(rotation_angle_x);
-    offset_z = border_separation_z + radiator_radius / sin(rotation_angle_x) + screw_head_height;
+    offset_z = border_separation_z + radiator_radius_external / sin(rotation_angle_x) + screw_head_height;
     
     // simulation of screw heads
     translate([-hole_x, hole_y, 0])
@@ -82,9 +80,6 @@ module test_holes()
     cylinder(h=screw_head_height, r=screw_head_radius);
     
     // radiator holes - the hard part!
-    radiator_hole_length = thickness*1.4; // FIXME
-    radiator_hole_offset_z = -3*thickness/4; // FIXME
-    radiator_hole_offset_after_rotate_z = 0; // FIXME
     
     translate([-hole_x, hole_y, offset_z])
     rotate([rotation_angle_x, rotation_angle_y, rotation_angle_z])
@@ -199,5 +194,9 @@ else
 {
     // Upper piece - radiator holder
     // radiator_holder(side_x, side_y, SLAB_SCREW_HOLE_DISTANCE_X, SLAB_SCREW_HOLE_DISTANCE_Y, SCREW_HEAD_RADIUS, SCREW_HEAD_HEIGHT, SLAB_HOLE_RADIUS, RADIATOR_RADIUS, RADIATOR_HOLDER_THICKNESS);
-    test_holes();
+    difference()
+    {
+        test_holes(RADIATOR_HOLDER_THICKNESS*1.6, SLAB_SCREW_HOLE_DISTANCE_X, SLAB_SCREW_HOLE_DISTANCE_Y, SCREW_HEAD_HEIGHT, SCREW_HEAD_RADIUS, RADIATOR_RADIUS + 1.0, RADIATOR_RADIUS, false);
+                test_holes(RADIATOR_HOLDER_THICKNESS*1.6, SLAB_SCREW_HOLE_DISTANCE_X, SLAB_SCREW_HOLE_DISTANCE_Y, SCREW_HEAD_HEIGHT, SCREW_HEAD_RADIUS, RADIATOR_RADIUS + 1.0, RADIATOR_RADIUS, true);
+    }
 }
