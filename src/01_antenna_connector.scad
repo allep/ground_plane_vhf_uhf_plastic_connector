@@ -7,7 +7,7 @@
 $fn = 50;
 
 // Mode
-IS_LOWER_PIECE = false;
+IS_LOWER_PIECE = true;
 
 // Radius + approx 6% tolerance
 RADIATOR_RADIUS = 3.2;
@@ -49,24 +49,7 @@ module cylinder_with_hole(radius, hole_radius, height)
     }
 }
 
-module test_holes(radiator_hole_length, distance_x, distance_y, screw_head_height, screw_head_radius, radiator_radius_external, radiator_radius_internal, create_for_internal_hole)
-{
-    rotation_angle_x = 45;
-    rotation_angle_y = 0;
-    rotation_angle_z = 45;
-    
-    hole_x = distance_x / 2;
-    hole_y = distance_y / 2;
-    
-    // choose how to produce the holder
-    radiator_radius = (create_for_internal_hole == true) ? radiator_radius_internal : radiator_radius_external;
-    
-    echo(radiator_radius);
-    
-    border_separation_z = screw_head_radius / tan(rotation_angle_x);
-    offset_z = border_separation_z + radiator_radius_external / sin(rotation_angle_x) + screw_head_height;
-    
-    // simulation of screw heads
+module screw_heads(hole_x, hole_y, screw_head_height, screw_head_radius){
     translate([-hole_x, hole_y, 0])
     cylinder(h=screw_head_height, r=screw_head_radius);
 
@@ -78,24 +61,51 @@ module test_holes(radiator_hole_length, distance_x, distance_y, screw_head_heigh
 
     translate([hole_x, hole_y, 0])
     cylinder(h=screw_head_height, r=screw_head_radius);
+}
+
+module radiator_holder_cylinders(radiator_hole_length, distance_x, distance_y, screw_head_height, screw_head_radius, radiator_radius_external, radiator_radius_internal, create_for_internal_hole)
+{
+    // internal data
+    rotation_angle_x = 45;
+    rotation_angle_y = 0;
+    rotation_angle_z = 45;
+    
+    // cylinder hole correction factor
+    cylinder_hole_correction_factor = 10.0;
+    
+    hole_x = distance_x / 2;
+    hole_y = distance_y / 2;
+    
+    // choose how to produce the holder
+    radiator_radius = (create_for_internal_hole == true) ? radiator_radius_internal : radiator_radius_external;
+    
+    // Note: in case of internal hole, we need to make sure the hole doesn't stop at the cylinder interface, 
+    // otherwise leftovers may happen. Hence, length is computed differently for the two cases.
+    cylinder_length = (create_for_internal_hole == true) ? radiator_hole_length * cylinder_hole_correction_factor : radiator_hole_length;
+    
+    border_separation_z = screw_head_radius / tan(rotation_angle_x);
+    offset_z = border_separation_z + radiator_radius_external / sin(rotation_angle_x) + screw_head_height;
+    
+    // simulation of screw heads - for debug purposes only
+    // screw_heads(hole_x, hole_y, screw_head_height, screw_head_radius);
     
     // radiator holes - the hard part!
     
     translate([-hole_x, hole_y, offset_z])
     rotate([rotation_angle_x, rotation_angle_y, rotation_angle_z])
-    cylinder(h=radiator_hole_length, r=radiator_radius, center = true);
+    cylinder(h=cylinder_length, r=radiator_radius, center = true);
 
     translate([-hole_x, -hole_y, offset_z])
     rotate([rotation_angle_x, rotation_angle_y, 3 * rotation_angle_z])
-    cylinder(h=radiator_hole_length, r=radiator_radius, center = true);
+    cylinder(h=cylinder_length, r=radiator_radius, center = true);
 
     translate([hole_x, -hole_y, offset_z])
     rotate([rotation_angle_x, -rotation_angle_y, 5 * rotation_angle_z])
-    cylinder(h=radiator_hole_length, r=radiator_radius, center = true);
+    cylinder(h=cylinder_length, r=radiator_radius, center = true);
 
     translate([hole_x, hole_y, offset_z])
     rotate([rotation_angle_x, -rotation_angle_y, 7 * rotation_angle_z])
-    cylinder(h=radiator_hole_length, r=radiator_radius, center = true);
+    cylinder(h=cylinder_length, r=radiator_radius, center = true);
 }
 
 module radiator_holder(side_x, side_y, distance_x, distance_y, screw_head_radius, screw_head_height, main_hole_radius, radiator_radius, thickness)
@@ -103,10 +113,19 @@ module radiator_holder(side_x, side_y, distance_x, distance_y, screw_head_radius
     hole_x = distance_x / 2;
     hole_y = distance_y / 2;
     
+    external_radiator_radius = radiator_radius * 1.4;
+    radiator_cylinder_length = thickness * 1.0;
+    
     difference()
     {
-        translate([-side_x / 2, -side_y / 2, 0])
-        cube([side_x, side_y, thickness]);
+        union()
+        {
+            translate([-side_x / 2, -side_y / 2, 0])
+            cube([side_x, side_y, thickness]);
+            
+            // radiator holder cylinders
+            radiator_holder_cylinders(radiator_cylinder_length, distance_x, distance_y, screw_head_height, screw_head_radius, external_radiator_radius, radiator_radius, false);
+        }
         
         // main hole
         cylinder(h=thickness, r=main_hole_radius);
@@ -121,30 +140,8 @@ module radiator_holder(side_x, side_y, distance_x, distance_y, screw_head_radius
         translate([-hole_x, +hole_y, 0])
         cylinder(h=screw_head_height, r=screw_head_radius);
         
-        // radiator holes - the hard part!
-        radiator_hole_length = thickness*1.4; // FIXME
-        radiator_hole_offset_z = -3*thickness/4; // FIXME
-        radiator_hole_offset_after_rotate_z = screw_head_height + 10; // FIXME
-            
-        translate([-hole_x, -hole_y, radiator_hole_offset_after_rotate_z])
-        rotate([-45, 45, 0])
-        translate([0, 0, radiator_hole_offset_z])
-        cylinder(h=radiator_hole_length, r=radiator_radius);
-        
-        translate([-hole_x, hole_y, radiator_hole_offset_after_rotate_z])
-        rotate([45, 45, 0])
-        translate([0, 0, radiator_hole_offset_z])
-        cylinder(h=radiator_hole_length, r=radiator_radius);
-        
-        translate([hole_x, hole_y, radiator_hole_offset_after_rotate_z])
-        rotate([45, -45, 0])
-        translate([0, 0, radiator_hole_offset_z])
-        cylinder(h=radiator_hole_length, r=radiator_radius);
-        
-        translate([hole_x, -hole_y, radiator_hole_offset_after_rotate_z])
-        rotate([-45, -45, 0])
-        translate([0, 0, radiator_hole_offset_z])
-        cylinder(h=radiator_hole_length, r=radiator_radius);
+        // radiator holes
+        radiator_holder_cylinders(radiator_cylinder_length, distance_x, distance_y, screw_head_height, screw_head_radius, external_radiator_radius, radiator_radius, true);
     }
 }
 
@@ -193,10 +190,5 @@ if (IS_LOWER_PIECE == true)
 else
 {
     // Upper piece - radiator holder
-    // radiator_holder(side_x, side_y, SLAB_SCREW_HOLE_DISTANCE_X, SLAB_SCREW_HOLE_DISTANCE_Y, SCREW_HEAD_RADIUS, SCREW_HEAD_HEIGHT, SLAB_HOLE_RADIUS, RADIATOR_RADIUS, RADIATOR_HOLDER_THICKNESS);
-    difference()
-    {
-        test_holes(RADIATOR_HOLDER_THICKNESS*1.6, SLAB_SCREW_HOLE_DISTANCE_X, SLAB_SCREW_HOLE_DISTANCE_Y, SCREW_HEAD_HEIGHT, SCREW_HEAD_RADIUS, RADIATOR_RADIUS + 1.0, RADIATOR_RADIUS, false);
-                test_holes(RADIATOR_HOLDER_THICKNESS*1.6, SLAB_SCREW_HOLE_DISTANCE_X, SLAB_SCREW_HOLE_DISTANCE_Y, SCREW_HEAD_HEIGHT, SCREW_HEAD_RADIUS, RADIATOR_RADIUS + 1.0, RADIATOR_RADIUS, true);
-    }
+    radiator_holder(side_x, side_y, SLAB_SCREW_HOLE_DISTANCE_X, SLAB_SCREW_HOLE_DISTANCE_Y, SCREW_HEAD_RADIUS, SCREW_HEAD_HEIGHT, SLAB_HOLE_RADIUS, RADIATOR_RADIUS, RADIATOR_HOLDER_THICKNESS);
 }
