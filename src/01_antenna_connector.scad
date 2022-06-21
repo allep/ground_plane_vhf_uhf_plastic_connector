@@ -49,6 +49,60 @@ module cylinder_with_hole(radius, hole_radius, height)
     }
 }
 
+module test_holes()
+{
+    distance_x = SLAB_SCREW_HOLE_DISTANCE_X;
+    distance_y = SLAB_SCREW_HOLE_DISTANCE_Y;
+    radiator_radius = RADIATOR_RADIUS;
+    screw_head_height = SCREW_HEAD_HEIGHT;
+    screw_head_radius = SCREW_HEAD_RADIUS;
+    
+    rotation_angle_x = 45;
+    rotation_angle_y = 0;
+    rotation_angle_z = 45;
+    
+    thickness = 15.0;
+    hole_x = distance_x / 2;
+    hole_y = distance_y / 2;
+    
+    border_separation_z = screw_head_radius / tan(rotation_angle_x);
+    offset_z = border_separation_z + radiator_radius / sin(rotation_angle_x) + screw_head_height;
+    
+    // simulation of screw heads
+    translate([-hole_x, hole_y, 0])
+    cylinder(h=screw_head_height, r=screw_head_radius);
+
+    translate([-hole_x, -hole_y, 0])
+    cylinder(h=screw_head_height, r=screw_head_radius);
+
+    translate([hole_x, -hole_y, 0])
+    cylinder(h=screw_head_height, r=screw_head_radius);
+
+    translate([hole_x, hole_y, 0])
+    cylinder(h=screw_head_height, r=screw_head_radius);
+    
+    // radiator holes - the hard part!
+    radiator_hole_length = thickness*1.4; // FIXME
+    radiator_hole_offset_z = -3*thickness/4; // FIXME
+    radiator_hole_offset_after_rotate_z = 0; // FIXME
+    
+    translate([-hole_x, hole_y, offset_z])
+    rotate([rotation_angle_x, rotation_angle_y, rotation_angle_z])
+    cylinder(h=radiator_hole_length, r=radiator_radius, center = true);
+
+    translate([-hole_x, -hole_y, offset_z])
+    rotate([rotation_angle_x, rotation_angle_y, 3 * rotation_angle_z])
+    cylinder(h=radiator_hole_length, r=radiator_radius, center = true);
+
+    translate([hole_x, -hole_y, offset_z])
+    rotate([rotation_angle_x, -rotation_angle_y, 5 * rotation_angle_z])
+    cylinder(h=radiator_hole_length, r=radiator_radius, center = true);
+
+    translate([hole_x, hole_y, offset_z])
+    rotate([rotation_angle_x, -rotation_angle_y, 7 * rotation_angle_z])
+    cylinder(h=radiator_hole_length, r=radiator_radius, center = true);
+}
+
 module radiator_holder(side_x, side_y, distance_x, distance_y, screw_head_radius, screw_head_height, main_hole_radius, radiator_radius, thickness)
 {
     hole_x = distance_x / 2;
@@ -144,5 +198,6 @@ if (IS_LOWER_PIECE == true)
 else
 {
     // Upper piece - radiator holder
-    radiator_holder(side_x, side_y, SLAB_SCREW_HOLE_DISTANCE_X, SLAB_SCREW_HOLE_DISTANCE_Y, SCREW_HEAD_RADIUS, SCREW_HEAD_HEIGHT, SLAB_HOLE_RADIUS, RADIATOR_RADIUS, RADIATOR_HOLDER_THICKNESS);
+    // radiator_holder(side_x, side_y, SLAB_SCREW_HOLE_DISTANCE_X, SLAB_SCREW_HOLE_DISTANCE_Y, SCREW_HEAD_RADIUS, SCREW_HEAD_HEIGHT, SLAB_HOLE_RADIUS, RADIATOR_RADIUS, RADIATOR_HOLDER_THICKNESS);
+    test_holes();
 }
