@@ -7,7 +7,7 @@
 $fn = 50;
 
 // Mode
-IS_LOWER_PIECE = true;
+IS_LOWER_PIECE = false;
 
 // Radius + approx 6% tolerance
 RADIATOR_RADIUS = 3.2;
@@ -27,17 +27,23 @@ CONNECTOR_WASHER_THICKNESS = 2.5;
 RADIATOR_HOLDER_THICKNESS = 15.0;
 
 // Screws data
-SCREW_HEAD_RADIUS = 3.0;
-SCREW_HEAD_HEIGHT = 3.0;
+SCREW_HEAD_RADIUS = 3.5;
+SCREW_HEAD_HEIGHT = 5.0;
 SLAB_SCREW_HOLE_RADIUS = 2.25;
 SLAB_SCREW_HOLE_DISTANCE_X = 19.0;
 SLAB_SCREW_HOLE_DISTANCE_Y = 22.0;
 SLAB_THICKNESS = 1.5;
 
+// Screw washer data
+SCREW_WASHER_EXTERNAL_RADIUS = 4.5;
+SCREW_WASHER_INTERNAL_RADIUS = 2.65;
+SCREW_WASHER_THICKNESS = 0.6;
+
 // Slab data
 
 // External gap to be measured from the hole perimeter
 SLAB_SCREW_EXTERNAL_GAP = 3.0;
+SLAB_SIDE = 35.0;
 
 // Modules
 module cylinder_with_hole(radius, hole_radius, height)
@@ -70,7 +76,7 @@ module radiator_holder_cylinders(radiator_hole_length, distance_x, distance_y, s
     rotation_angle_y = 0;
     rotation_angle_z = 45;
     
-    // cylinder hole correction factor
+    // Used to make sure that the hole is a pass-through hole
     cylinder_hole_correction_factor = 10.0;
     
     hole_x = distance_x / 2;
